@@ -1,2 +1,2 @@
-version = '0.0.4'
+version = '0.0.5'
 requirements = ['heroku3', 'aiogram', 'pyTelegramBotApi', 'requests', 'bs4', 'Unidecode']
