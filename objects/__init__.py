@@ -30,7 +30,7 @@ log_file_name = 'log.txt'
 
 
 def test():
-    return 'test from github'
+    return 'test from github 0.0.5'
 
 
 def bold(text):
