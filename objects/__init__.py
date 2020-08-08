@@ -29,10 +29,6 @@ idDevCentre = -1001312302092
 log_file_name = 'log.txt'
 
 
-def test():
-    return 'test from github 0.0.5'
-
-
 def bold(text):
     return '<b>' + str(text) + '</b>'
 
