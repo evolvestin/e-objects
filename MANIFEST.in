@@ -1,1 +1,1 @@
-global-include README.rst *.txt *.py
+global-include README.rst LICENSE.txt
