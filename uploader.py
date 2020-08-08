@@ -11,7 +11,6 @@ data = literal_eval(base64.b64decode(data).decode('utf-8'))
 
 while True:
     sleep(10)
-    print(version, '-', os.environ.get('version'))
     if os.environ.get('version') != version:
         os.system('python setup.py sdist')
         os.system(command % data)
