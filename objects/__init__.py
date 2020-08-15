@@ -18,15 +18,27 @@ from ast import literal_eval
 from bs4 import BeautifulSoup
 from datetime import datetime
 from unidecode import unidecode
+
+host = 'Unknown'
+app_name = 'Undefined'
+log_file_name = 'log.txt'
+idDevCentre = -1001312302092
+bot_start = telebot.TeleBot('456171769:AAGVaAEZTE1n4YLa-RnRmsQ60O9C31otqiI')
+bot_error = telebot.TeleBot('580232743:AAEfqNw32ob_YkiM22GtcL68jDgP1ZJ_RMU')
+sql_patterns = ['database is locked', 'disk image is malformed', 'no such table']
+search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
+week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт', 'Sat': 'Сб', 'Sun': 'Вс'}
 search_major_fails_pattern = 'The (read|write) operation timed out|Backend Error|is currently unavailable.'
 search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError'
-week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт', 'Sat': 'Сб', 'Sun': 'Вс'}
-search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
-sql_patterns = ['database is locked', 'disk image is malformed', 'no such table']
-bot_error = telebot.TeleBot('580232743:AAEfqNw32ob_YkiM22GtcL68jDgP1ZJ_RMU')
-bot_start = telebot.TeleBot('456171769:AAGVaAEZTE1n4YLa-RnRmsQ60O9C31otqiI')
-idDevCentre = -1001312302092
-log_file_name = 'log.txt'
+
+
+if os.environ.get('api'):
+    for app in heroku3.from_key(os.environ.get('api')).apps():
+        if app.name.endswith('first'):
+            host = 'One'
+        if app.name.endswith('second'):
+            host = 'Two'
+        app_name = re.sub('-first|-second', '', app.name, 1)
 
 
 def bold(text):
@@ -47,6 +59,10 @@ def code(text):
 
 def html_secure(text):
     return re.sub('<', '&#60;', str(text))
+
+
+def html_link(link, text):
+    return '<a href="' + str(link) + '">' + str(text) + '</a>'
 
 
 def time_now():
@@ -95,13 +111,11 @@ def stamper(date, pattern=None):
 
 def send_dev_message(text, tag=code, good=False):
     bot = bot_error
-    text = html_secure(text)
-    bot_name, host = get_bot_name()
     if good:
         bot = bot_start
     if tag:
-        text = tag(text)
-    text = bold(bot_name) + ' (' + code(host) + '):\n' + text
+        text = tag(html_secure(text))
+    text = bold(app_name) + ' (' + code(host) + '):\n' + text
     message = bot.send_message(idDevCentre, text, disable_web_page_preview=True, parse_mode='HTML')
     return message
 
@@ -120,34 +134,15 @@ def query(link, string):
 
 
 def start_message(token_main, stamp1, text=None):
-    bot_name, host = get_bot_name()
     bot_username = str(get_me_dict(token_main).get('username'))
-    head = '<a href="https://t.me/' + bot_username + '">' + \
-        bold(bot_name) + '</a> (' + code(host) + '):\n' + \
-        log_time(stamp1, code) + '\n' + log_time(tag=code)
+    head = html_link('https://t.me/' + bot_username, bold(app_name)) + \
+        ' (' + code(host) + '):\n' + log_time(stamp1, code) + '\n' + log_time(tag=code)
     start_text = ''
     if text:
         start_text = '\n' + str(text)
     text = head + start_text
     message = bot_start.send_message(idDevCentre, text, disable_web_page_preview=True, parse_mode='HTML')
     return message
-
-
-def get_bot_name():
-    host = 'Unknown'
-    app_name = 'Undefined'
-    token = os.environ.get('api')
-    if token:
-        connection = heroku3.from_key(token)
-        for app in connection.apps():
-            app_name = app.name
-            if app_name.endswith('first'):
-                app_name = re.sub('-first', '', app_name, 1)
-                host = 'One'
-            if app_name.endswith('second'):
-                app_name = re.sub('-second', '', app_name, 1)
-                host = 'Two'
-    return app_name, host
 
 
 def start_main_bot(library, token):
@@ -251,6 +246,50 @@ def printer(printer_text):
     file.close()
 
 
+def edit_dev_message(old_message, text):
+    entities = old_message.entities
+    text_list = list(html_secure(old_message.text))
+    if entities:
+        position = 0
+        used_offsets = []
+        for i in text_list:
+            true_length = len(i.encode('utf-16-le')) // 2
+            while true_length > 1:
+                text_list.insert(position + 1, '')
+                true_length -= 1
+            position += 1
+        for i in reversed(entities):
+            end_index = i.offset + i.length - 1
+            if i.offset + i.length >= len(text_list):
+                end_index = len(text_list) - 1
+            if i.type != 'mention':
+                tag = 'code'
+                if i.type == 'bold':
+                    tag = 'b'
+                elif i.type == 'italic':
+                    tag = 'i'
+                elif i.type == 'text_link':
+                    tag = 'a'
+                elif i.type == 'underline':
+                    tag = 'u'
+                elif i.type == 'strikethrough':
+                    tag = 's'
+                if i.offset + i.length not in used_offsets or i.type == 'text_link':
+                    text_list[end_index] += '</' + tag + '>'
+                    if i.type == 'text_link':
+                        tag = 'a href="' + i.url + '"'
+                    text_list[i.offset] = '<' + tag + '>' + text_list[i.offset]
+                    used_offsets.append(i.offset + i.length)
+    new_text = ''.join(text_list) + text
+    try:
+        message = bot_start.edit_message_text(new_text, old_message.chat.id, old_message.message_id,
+                                              disable_web_page_preview=True, parse_mode='HTML')
+    except IndexError and Exception:
+        new_text += italic('\nНе смог отредактировать сообщение. Отправлено новое')
+        message = bot_start.send_message(idDevCentre, new_text, parse_mode='HTML')
+    return message
+
+
 def properties_json(sheet_id, limit, option=None):
     if option is None:
         option = []
@@ -304,50 +343,6 @@ def properties_json(sheet_id, limit, option=None):
     return body
 
 
-def edit_dev_message(old_message, text):
-    entities = old_message.entities
-    text_list = list(html_secure(old_message.text))
-    if entities:
-        position = 0
-        used_offsets = []
-        for i in text_list:
-            true_length = len(i.encode('utf-16-le')) // 2
-            while true_length > 1:
-                text_list.insert(position + 1, '')
-                true_length -= 1
-            position += 1
-        for i in reversed(entities):
-            end_index = i.offset + i.length - 1
-            if i.offset + i.length >= len(text_list):
-                end_index = len(text_list) - 1
-            if i.type != 'mention':
-                tag = 'code'
-                if i.type == 'bold':
-                    tag = 'b'
-                elif i.type == 'italic':
-                    tag = 'i'
-                elif i.type == 'text_link':
-                    tag = 'a'
-                elif i.type == 'underline':
-                    tag = 'u'
-                elif i.type == 'strikethrough':
-                    tag = 's'
-                if i.offset + i.length not in used_offsets or i.type == 'text_link':
-                    text_list[end_index] += '</' + tag + '>'
-                    if i.type == 'text_link':
-                        tag = 'a href="' + i.url + '"'
-                    text_list[i.offset] = '<' + tag + '>' + text_list[i.offset]
-                    used_offsets.append(i.offset + i.length)
-    new_text = ''.join(text_list) + text
-    try:
-        message = bot_start.edit_message_text(new_text, old_message.chat.id, old_message.message_id,
-                                              disable_web_page_preview=True, parse_mode='HTML')
-    except IndexError and Exception:
-        new_text += italic('\nНе смог отредактировать сообщение. Отправлено новое')
-        message = bot_start.send_message(idDevCentre, new_text, parse_mode='HTML')
-    return message
-
-
 def send_json(logs, name, error):
     json_text = ''
     if type(logs) is str:
@@ -383,15 +378,19 @@ def send_json(logs, name, error):
                 bot_error.send_message(idDevCentre, split_error, parse_mode='HTML')
 
 
+# =============================================================================================================
+# ================================================  EXECUTIVE  ================================================
+# =============================================================================================================
+
+
 def executive(logs):
     retry = 100
     func = None
     func_locals = []
     stack = inspect.stack()
-    bot_name, host = get_bot_name()
     name = re.sub('[<>]', '', str(stack[-1][3]))
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    full_name = bold(bot_name) + '(' + code(host) + ').' + bold(name + '()')
+    full_name = bold(app_name) + '(' + code(host) + ').' + bold(name + '()')
     error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
     printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + error_raw[-1])
     error = 'Вылет ' + full_name + '\n\n'
