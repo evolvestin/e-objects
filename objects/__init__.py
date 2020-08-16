@@ -407,6 +407,7 @@ def executive(logs):
         retry = 10
         error = ''
     if search_major_fails:
+        logs = None
         retry = 99
         error = ''
 
