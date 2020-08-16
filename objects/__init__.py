@@ -403,6 +403,7 @@ def executive(logs):
     if search_retry:
         retry = int(search_retry.group(1)) + 10
     if search_minor_fails:
+        logs = None
         retry = 10
         error = ''
     if search_major_fails:
