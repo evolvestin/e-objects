@@ -29,7 +29,8 @@ sql_patterns = ['database is locked', 'disk image is malformed', 'no such table'
 search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
 week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт', 'Sat': 'Сб', 'Sun': 'Вс'}
 search_major_fails_pattern = 'The (read|write) operation timed out|Backend Error|is currently unavailable.'
-search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError'
+search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.' \
+                             '|ServerDisconnectedError|Message_id_invalid'
 
 
 if os.environ.get('api'):
