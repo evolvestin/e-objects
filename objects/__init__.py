@@ -29,8 +29,8 @@ sql_patterns = ['database is locked', 'disk image is malformed', 'no such table'
 search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
 week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт', 'Sat': 'Сб', 'Sun': 'Вс'}
 search_major_fails_pattern = 'The (read|write) operation timed out|Backend Error|is currently unavailable.'
-search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.' \
-                             '|ServerDisconnectedError|Message_id_invalid'
+search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError' \
+                             '|Message_id_invalid|Connection aborted'
 
 
 if os.environ.get('api'):
@@ -134,10 +134,13 @@ def query(link, string):
         return None
 
 
-def start_message(token_main, stamp1, text=None):
-    bot_username = str(get_me_dict(token_main).get('username'))
-    head = html_link('https://t.me/' + bot_username, bold(app_name)) + \
-        ' (' + code(host) + '):\n' + log_time(stamp1, code) + '\n' + log_time(tag=code)
+def start_message(token_main, stamp, text=None):
+    bot_linked_name = bold(app_name)
+    if token_main:
+        bot_username = str(get_me_dict(token_main).get('username'))
+        bot_linked_name = html_link('https://t.me/' + bot_username, bold(app_name))
+    head = bot_linked_name + ' (' + code(host) + '):\n' + \
+        log_time(stamp, code) + '\n' + log_time(tag=code)
     start_text = ''
     if text:
         start_text = '\n' + str(text)
@@ -393,7 +396,7 @@ def executive(logs):
     exc_type, exc_value, exc_traceback = sys.exc_info()
     full_name = bold(app_name) + '(' + code(host) + ').' + bold(name + '()')
     error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + error_raw[-1])
+    printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + re.sub('\n', '', error_raw[-1]))
     error = 'Вылет ' + full_name + '\n\n'
     for i in error_raw:
         error += html_secure(i)
