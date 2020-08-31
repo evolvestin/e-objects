@@ -7,4 +7,4 @@ Some objects for telegram bots
 Installation
 ============
 
-    pip install requests-futures
+    pip install e-objects
