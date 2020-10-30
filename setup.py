@@ -1,19 +1,18 @@
 from setuptools import setup
-from version import version, requirements
 setup(
     license='MIT',
-    version=version,
     name='e-objects',
     keywords='objects',
     author='evolvestin',
     packages=['objects'],
-    install_requires=requirements,
+    version=open('version').read(),
     package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
     package_data={'objects': ['LICENSE.rst']},
     long_description=open('README.rst').read(),
     url='https://github.com/steve10live/e-objects/',
     description='Some useful objects for telegram bots.',
+    install_requires=['heroku3', 'aiogram', 'pyTelegramBotApi', 'requests', 'bs4', 'Unidecode'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
