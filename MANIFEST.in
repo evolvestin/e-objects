@@ -1,1 +1,3 @@
-global-include README.rst LICENCE.txt version
+include README.rst 
+include LICENCE.txt 
+include version
