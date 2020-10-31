@@ -1,16 +1,23 @@
 import os
-from setuptools import setup
+import io
+from setuptools import setup, find_packages
+
+
+def read(*parts):
+    filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), *parts)
+    with io.open(filename, encoding='utf-8', mode='rt') as fp:
+        return fp.read()
+
+
 setup(
     license='MIT',
     name='e-objects',
     keywords='objects',
     author='evolvestin',
-    packages=['objects'],
-    version=open(os.path.abspath('version')).read(),
-    package_dir={'objects': 'objects'},
+    version=read('version'),
+    packages=find_packages('objects'),
     author_email='evolvestin@gmail.com',
-    package_data={'objects': ['LICENSE.rst']},
-    long_description=open(os.path.abspath('README.rst')).read(),
+    long_description=read('README.rst'),
     url='https://github.com/steve10live/e-objects/',
     description='Some useful objects for telegram bots.',
     install_requires=['heroku3', 'aiogram', 'pyTelegramBotApi', 'requests', 'bs4', 'Unidecode'],
