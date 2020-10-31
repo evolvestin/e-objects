@@ -1,6 +1,6 @@
 import os
 import io
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 def read(*parts):
@@ -14,8 +14,9 @@ setup(
     name='e-objects',
     keywords='objects',
     author='evolvestin',
+    packages=['objects'],
     version=read('version'),
-    packages=find_packages('objects'),
+    package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
     long_description=read('README.rst'),
     url='https://github.com/steve10live/e-objects/',
