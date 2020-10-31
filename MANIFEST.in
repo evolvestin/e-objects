@@ -1,1 +1,1 @@
-global-include README.rst LICENSE.txt version.py
+global-include README.rst LICENSE.txt version
