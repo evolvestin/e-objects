@@ -62,12 +62,12 @@ def html_secure(text):
     return re.sub('<', '&#60;', str(text))
 
 
-def html_link(link, text):
-    return '<a href="' + str(link) + '">' + str(text) + '</a>'
-
-
 def time_now():
     return int(datetime.now().timestamp())
+
+
+def html_link(link, text):
+    return '<a href="' + str(link) + '">' + str(text) + '</a>'
 
 
 def get_me_dict(token):
@@ -80,6 +80,15 @@ def append_values(array, values):
         values = [values]
     array.extend(values)
     return array
+
+
+def environmental_files():
+    directory = os.listdir('.')
+    for key in os.environ.keys():
+        if key.endswith('.json') and key not in directory:
+            file = open(key, 'w')
+            file.write(os.environ.get(key))
+            file.close()
 
 
 def chunks(array, separate):
