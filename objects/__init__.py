@@ -144,7 +144,7 @@ def environmental_files(python=False):
             file = open(key, 'w')
             file.write(os.environ.get(key))
             file.close()
-        if key.endswith('.py') and key not in directory and python is True:
+        if key.endswith('.py') and python is True:
             with codecs.open(key, 'w', 'utf-8') as file:
                 file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
                 file.close()
