@@ -2,6 +2,8 @@ import os
 import re
 import sys
 import time
+import base64
+import codecs
 import heroku3
 import asyncio
 import aiogram
@@ -82,7 +84,7 @@ def append_values(array, values):
     return array
 
 
-def environmental_files():
+def environmental_files(python=False):
     directory = os.listdir('.')
     for key in os.environ.keys():
         key = key.lower()
@@ -90,6 +92,10 @@ def environmental_files():
             file = open(key, 'w')
             file.write(os.environ.get(key))
             file.close()
+        if key.endswith('.py') and key not in directory and python is True:
+            with codecs.open(key, 'w', 'utf-8') as file:
+                file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
+                file.close()
 
 
 def chunks(array, separate):
