@@ -85,6 +85,7 @@ def append_values(array, values):
 def environmental_files():
     directory = os.listdir('.')
     for key in os.environ.keys():
+        key = key.lower()
         if key.endswith('.json') and key not in directory:
             file = open(key, 'w')
             file.write(os.environ.get(key))
