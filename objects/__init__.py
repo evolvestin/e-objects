@@ -84,20 +84,6 @@ def append_values(array, values):
     return array
 
 
-def environmental_files(python=False):
-    directory = os.listdir('.')
-    for key in os.environ.keys():
-        key = key.lower()
-        if key.endswith('.json') and key not in directory:
-            file = open(key, 'w')
-            file.write(os.environ.get(key))
-            file.close()
-        if key.endswith('.py') and key not in directory and python is True:
-            with codecs.open(key, 'w', 'utf-8') as file:
-                file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
-                file.close()
-
-
 def chunks(array, separate):
     separated = []
     d, r = divmod(len(array), separate)
@@ -148,6 +134,20 @@ def query(link, string):
         return search
     else:
         return None
+
+
+def environmental_files(python=False):
+    directory = os.listdir('.')
+    for key in os.environ.keys():
+        key = key.lower()
+        if key.endswith('.json') and key not in directory:
+            file = open(key, 'w')
+            file.write(os.environ.get(key))
+            file.close()
+        if key.endswith('.py') and key not in directory and python is True:
+            with codecs.open(key, 'w', 'utf-8') as file:
+                file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
+                file.close()
 
 
 def start_message(token_main, stamp, text=None):
@@ -233,8 +233,10 @@ def log_time(stamp=None, tag=None, gmt=3, form=None):
     response = week[weekday] + ' ' + day + '.' + month + '.' + year + ' ' + hour + ':' + minute + ':' + second
     if form == 'channel':
         response = day + '/' + month + '/' + year + ' ' + hour + ':' + minute + ':' + second
-    elif form == 'normal':
-        response = day + '.' + month + '.' + year + ' ' + hour + ':' + minute + ':' + second
+    elif form in ['au_normal', 'normal']:
+        response = day + '.' + month + '.' + year + ' ' + hour + ':' + minute
+        if form == 'normal':
+            response += ':' + second
     if tag:
         response = tag(response)
     if form is None:
