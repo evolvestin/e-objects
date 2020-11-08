@@ -231,12 +231,12 @@ def log_time(stamp=None, tag=None, gmt=3, form=None):
     minute = datetime.utcfromtimestamp(stamp).strftime('%M')
     second = datetime.utcfromtimestamp(stamp).strftime('%S')
     response = week[weekday] + ' ' + day + '.' + month + '.' + year + ' ' + hour + ':' + minute + ':' + second
-    if form == 'channel':
-        response = day + '/' + month + '/' + year + ' ' + hour + ':' + minute + ':' + second
+    if form in ['b_channel', 'channel']:
+        response = day + '/' + month + '/' + year + ' ' + hour + ':' + minute
     elif form in ['au_normal', 'normal']:
         response = day + '.' + month + '.' + year + ' ' + hour + ':' + minute
-        if form == 'normal':
-            response += ':' + second
+    if form in ['channel', 'normal']:
+        response += ':' + second
     if tag:
         response = tag(response)
     if form is None:
