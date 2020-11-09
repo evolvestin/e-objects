@@ -136,16 +136,20 @@ def query(link, string):
         return None
 
 
-def environmental_files(python=False):
+def environmental_files(python=False, return_all_json=True):
     created_files = []
     directory = os.listdir('.')
     for key in os.environ.keys():
         key = key.lower()
-        if key.endswith('.json') and key not in directory:
-            file = open(key, 'w')
-            file.write(os.environ.get(key))
-            created_files.append(key)
-            file.close()
+        if key.endswith('.json'):
+            if return_all_json:
+                created_files.append(key)
+            if key not in directory:
+                file = open(key, 'w')
+                file.write(os.environ.get(key))
+                if return_all_json in [False, None]:
+                    created_files.append(key)
+                file.close()
         if key.endswith('.py') and python is True:
             with codecs.open(key, 'w', 'utf-8') as file:
                 file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
