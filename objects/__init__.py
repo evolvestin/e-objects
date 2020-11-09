@@ -137,17 +137,20 @@ def query(link, string):
 
 
 def environmental_files(python=False):
+    created_files = []
     directory = os.listdir('.')
     for key in os.environ.keys():
         key = key.lower()
         if key.endswith('.json') and key not in directory:
             file = open(key, 'w')
             file.write(os.environ.get(key))
+            created_files.append(key)
             file.close()
         if key.endswith('.py') and python is True:
             with codecs.open(key, 'w', 'utf-8') as file:
                 file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
                 file.close()
+    return created_files
 
 
 def start_message(token_main, stamp, text=None):
