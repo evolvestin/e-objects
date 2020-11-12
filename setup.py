@@ -1,5 +1,6 @@
 import os
 import io
+import re
 from setuptools import setup
 requirements = [
     'heroku3==4.2.3',
@@ -23,12 +24,12 @@ setup(
     keywords='objects',
     author='evolvestin',
     packages=['objects'],
-    version=read('version'),
     python_requires='>=3.7',
     install_requires=requirements,
     package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
     long_description=read('README.rst'),
+    version=re.sub('\n', '', read('version')),
     url='https://github.com/evolvestin/e-objects/',
     description='Some useful objects for telegram bots.',
     classifiers=[
