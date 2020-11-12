@@ -29,7 +29,7 @@ setup(
     package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
     long_description=read('README.rst'),
-    url='https://github.com/steve10live/e-objects/',
+    url='https://github.com/evolvestin/e-objects/',
     description='Some useful objects for telegram bots.',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
