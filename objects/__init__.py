@@ -24,9 +24,6 @@ from unidecode import unidecode
 host = 'Unknown'
 app_name = 'Undefined'
 log_file_name = 'log.txt'
-idDevCentre = -1001312302092
-bot_start = telebot.TeleBot('456171769:AAGVaAEZTE1n4YLa-RnRmsQ60O9C31otqiI')
-bot_error = telebot.TeleBot('580232743:AAEfqNw32ob_YkiM22GtcL68jDgP1ZJ_RMU')
 sql_patterns = ['database is locked', 'disk image is malformed', 'no such table']
 search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
 week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт', 'Sat': 'Сб', 'Sun': 'Вс'}
@@ -72,11 +69,6 @@ def html_link(link, text):
     return '<a href="' + str(link) + '">' + str(text) + '</a>'
 
 
-def get_me_dict(token):
-    me = str(telebot.TeleBot(token).get_me())
-    return literal_eval(me)
-
-
 def append_values(array, values):
     if type(values) != list:
         values = [values]
@@ -112,17 +104,6 @@ def stamper(date, pattern=None):
     return stamp
 
 
-def send_dev_message(text, tag=code, good=False):
-    bot = bot_error
-    if good:
-        bot = bot_start
-    if tag:
-        text = tag(html_secure(text))
-    text = bold(app_name) + ' (' + code(host) + '):\n' + text
-    message = bot.send_message(idDevCentre, text, disable_web_page_preview=True, parse_mode='HTML')
-    return message
-
-
 def query(link, string):
     response = requests.get(link + '?embed=1')
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -134,59 +115,6 @@ def query(link, string):
         return search
     else:
         return None
-
-
-def environmental_files(python=False, return_all_json=True):
-    created_files = []
-    directory = os.listdir('.')
-    for key in os.environ.keys():
-        key = key.lower()
-        if key.endswith('.json'):
-            if return_all_json:
-                created_files.append(key)
-            if key not in directory:
-                file = open(key, 'w')
-                file.write(os.environ.get(key))
-                if return_all_json in [False, None]:
-                    created_files.append(key)
-                file.close()
-        if key.endswith('.py') and python is True:
-            with codecs.open(key, 'w', 'utf-8') as file:
-                file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
-                file.close()
-    return created_files
-
-
-def start_message(token_main, stamp, text=None):
-    bot_linked_name = bold(app_name)
-    if token_main:
-        bot_username = str(get_me_dict(token_main).get('username'))
-        bot_linked_name = html_link('https://t.me/' + bot_username, bold(app_name))
-    head = bot_linked_name + ' (' + code(host) + '):\n' + \
-        log_time(stamp, code) + '\n' + log_time(tag=code)
-    start_text = ''
-    if text:
-        start_text = '\n' + str(text)
-    text = head + start_text
-    message = bot_start.send_message(idDevCentre, text, disable_web_page_preview=True, parse_mode='HTML')
-    return message
-
-
-def start_main_bot(library, token):
-    parameter = 'w'
-    directory = os.listdir('.')
-    text = 'Начало записи лога ' + log_time() + '\n' + \
-        'Номер главного _thread: ' + str(_thread.get_ident()) + '\n' + '-' * 50
-    if log_file_name in directory:
-        parameter = 'a'
-        text = '\n' + '-' * 50 + '\n' + text
-    file = open(log_file_name, parameter)
-    file.write(text)
-    file.close()
-    if library == 'async':
-        return aiogram.Bot(token)
-    else:
-        return telebot.TeleBot(token)
 
 
 def secure_sql(func, value=None):
@@ -225,6 +153,27 @@ async def async_secure_sql(func, value=None):
                     await asyncio.sleep(1)
                     lock = True
     return response
+
+
+def environmental_files(python=False, return_all_json=True):
+    created_files = []
+    directory = os.listdir('.')
+    for key in os.environ.keys():
+        key = key.lower()
+        if key.endswith('.json'):
+            if return_all_json:
+                created_files.append(key)
+            if key not in directory:
+                file = open(key, 'w')
+                file.write(os.environ.get(key))
+                if return_all_json in [False, None]:
+                    created_files.append(key)
+                file.close()
+        if key.endswith('.py') and python is True:
+            with codecs.open(key, 'w', 'utf-8') as file:
+                file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
+                file.close()
+    return created_files
 
 
 def log_time(stamp=None, tag=None, gmt=3, form=None):
@@ -273,50 +222,6 @@ def printer(printer_text):
     file.write(file_print_text)
     print(log_print_text)
     file.close()
-
-
-def edit_dev_message(old_message, text):
-    entities = old_message.entities
-    text_list = list(html_secure(old_message.text))
-    if entities:
-        position = 0
-        used_offsets = []
-        for i in text_list:
-            true_length = len(i.encode('utf-16-le')) // 2
-            while true_length > 1:
-                text_list.insert(position + 1, '')
-                true_length -= 1
-            position += 1
-        for i in reversed(entities):
-            end_index = i.offset + i.length - 1
-            if i.offset + i.length >= len(text_list):
-                end_index = len(text_list) - 1
-            if i.type != 'mention':
-                tag = 'code'
-                if i.type == 'bold':
-                    tag = 'b'
-                elif i.type == 'italic':
-                    tag = 'i'
-                elif i.type == 'text_link':
-                    tag = 'a'
-                elif i.type == 'underline':
-                    tag = 'u'
-                elif i.type == 'strikethrough':
-                    tag = 's'
-                if i.offset + i.length not in used_offsets or i.type == 'text_link':
-                    text_list[end_index] += '</' + tag + '>'
-                    if i.type == 'text_link':
-                        tag = 'a href="' + i.url + '"'
-                    text_list[i.offset] = '<' + tag + '>' + text_list[i.offset]
-                    used_offsets.append(i.offset + i.length)
-    new_text = ''.join(text_list) + text
-    try:
-        message = bot_start.edit_message_text(new_text, old_message.chat.id, old_message.message_id,
-                                              disable_web_page_preview=True, parse_mode='HTML')
-    except IndexError and Exception:
-        new_text += italic('\nНе смог отредактировать сообщение. Отправлено новое')
-        message = bot_start.send_message(idDevCentre, new_text, parse_mode='HTML')
-    return message
 
 
 def properties_json(sheet_id, limit, option=None):
@@ -372,104 +277,183 @@ def properties_json(sheet_id, limit, option=None):
     return body
 
 
-def send_json(logs, name, error):
-    json_text = ''
-    if type(logs) is str:
-        for character in logs:
-            replaced = unidecode(str(character))
-            if replaced != '':
-                json_text += replaced
-            else:
-                try:
-                    json_text += '[' + unicodedata.name(character) + ']'
-                except ValueError:
-                    json_text += '[???]'
-    if json_text:
-        doc = open(name + '.json', 'w')
-        doc.write(json_text)
-        doc.close()
-        caption = None
-        if len(error) <= 1024:
-            caption = error
-        doc = open(name + '.json', 'rb')
-        bot_error.send_document(idDevCentre, doc, caption=caption, parse_mode='HTML')
-    if (json_text == '' and 0 < len(error) <= 1024) or (1024 < len(error) <= 4096):
-        bot_error.send_message(idDevCentre, error, parse_mode='HTML')
-    elif len(error) > 4096:
-        separator = 4096
-        split_sep = len(error) // separator
-        split_mod = len(error) / separator - len(error) // separator
-        if split_mod != 0:
-            split_sep += 1
-        for i in range(0, split_sep):
-            split_error = error[i * separator:(i + 1) * separator]
-            if len(split_error) > 0:
-                bot_error.send_message(idDevCentre, split_error, parse_mode='HTML')
+class AuthCentre:
+    def __init__(self, token, dev_chat_id=None):
+        self.token = token
+        self.dev_chat_id = -1001312302092
+        if dev_chat_id:
+            self.dev_chat_id = dev_chat_id
+        self.bot = telebot.TeleBot(token)
+        self.get_me = literal_eval(str(self.bot.get_me()))
 
+    def send_dev_message(self, text, tag=code):
+        if tag:
+            text = tag(html_secure(text))
+        text = bold(app_name) + ' (' + code(host) + '):\n' + text
+        message = self.bot.send_message(self.dev_chat_id, text, disable_web_page_preview=True, parse_mode='HTML')
+        return message
 
-# =============================================================================================================
-# ================================================  EXECUTIVE  ================================================
-# =============================================================================================================
+    def start_message(self, stamp, text=None):
+        bot_linked_name = html_link('https://t.me/' + str(self.get_me.get('username')), bold(app_name))
+        head = bot_linked_name + ' (' + code(host) + '):\n' + \
+            log_time(stamp, code) + '\n' + log_time(tag=code)
+        start_text = ''
+        if text:
+            start_text = '\n' + str(text)
+        text = head + start_text
+        message = self.bot.send_message(self.dev_chat_id, text, disable_web_page_preview=True, parse_mode='HTML')
+        return message
 
+    def start_main_bot(self, library):
+        parameter = 'w'
+        directory = os.listdir('.')
+        text = 'Начало записи лога ' + log_time() + '\n' + \
+               'Номер главного _thread: ' + str(_thread.get_ident()) + '\n' + '-' * 50
+        if log_file_name in directory:
+            parameter = 'a'
+            text = '\n' + '-' * 50 + '\n' + text
+        file = open(log_file_name, parameter)
+        file.write(text)
+        file.close()
+        if library == 'async':
+            return aiogram.Bot(self.token)
+        else:
+            return telebot.TeleBot(self.token)
 
-def executive(logs):
-    retry = 100
-    func = None
-    func_locals = []
-    stack = inspect.stack()
-    name = re.sub('[<>]', '', str(stack[-1][3]))
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    full_name = bold(app_name) + '(' + code(host) + ').' + bold(name + '()')
-    error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + re.sub('\n', '', error_raw[-1]))
-    error = 'Вылет ' + full_name + '\n\n'
-    for i in error_raw:
-        error += html_secure(i)
-    search_retry = re.search(search_retry_pattern, str(error))
-    search_minor_fails = re.search(search_minor_fails_pattern, str(error))
-    search_major_fails = re.search(search_major_fails_pattern, str(error))
-    if search_retry:
-        retry = int(search_retry.group(1)) + 10
-    if search_minor_fails:
-        logs = None
-        retry = 10
-        error = ''
-    if search_major_fails:
-        logs = None
-        retry = 99
-        error = ''
-
-    if logs is None:
-        caller = inspect.currentframe().f_back.f_back
-        func_name = inspect.getframeinfo(caller)[2]
-        for a in caller.f_locals:
-            if a.startswith('host'):
-                func_locals.append(caller.f_locals.get(a))
-        func = caller.f_locals.get(func_name, caller.f_globals.get(func_name))
-    else:
-        retry = 0
-    send_json(logs, name, error)
-    return retry, func, func_locals, full_name
-
-
-def send_starting_function(retry, name):
-    if retry >= 100:
-        bot_error.send_message(idDevCentre, 'Запущен ' + name, parse_mode='HTML')
-
-
-def thread_exec(logs=None):
-    retry, func, func_locals, full_name = executive(logs)
-    sleep(retry)
-    if func:
+    def edit_dev_message(self, old_message, text):
+        entities = old_message.entities
+        text_list = list(html_secure(old_message.text))
+        if entities:
+            position = 0
+            used_offsets = []
+            for i in text_list:
+                true_length = len(i.encode('utf-16-le')) // 2
+                while true_length > 1:
+                    text_list.insert(position + 1, '')
+                    true_length -= 1
+                position += 1
+            for i in reversed(entities):
+                end_index = i.offset + i.length - 1
+                if i.offset + i.length >= len(text_list):
+                    end_index = len(text_list) - 1
+                if i.type != 'mention':
+                    tag = 'code'
+                    if i.type == 'bold':
+                        tag = 'b'
+                    elif i.type == 'italic':
+                        tag = 'i'
+                    elif i.type == 'text_link':
+                        tag = 'a'
+                    elif i.type == 'underline':
+                        tag = 'u'
+                    elif i.type == 'strikethrough':
+                        tag = 's'
+                    if i.offset + i.length not in used_offsets or i.type == 'text_link':
+                        text_list[end_index] += '</' + tag + '>'
+                        if i.type == 'text_link':
+                            tag = 'a href="' + i.url + '"'
+                        text_list[i.offset] = '<' + tag + '>' + text_list[i.offset]
+                        used_offsets.append(i.offset + i.length)
+        new_text = ''.join(text_list) + text
         try:
-            _thread.start_new_thread(func, (*func_locals,))
-        except IndexError and Exception as error:
-            send_dev_message(full_name + ':\n' + error, code)
-    send_starting_function(retry, full_name)
-    _thread.exit()
+            message = self.bot.edit_message_text(new_text, old_message.chat.id, old_message.message_id,
+                                                 disable_web_page_preview=True, parse_mode='HTML')
+        except IndexError and Exception:
+            new_text += italic('\nНе смог отредактировать сообщение. Отправлено новое')
+            message = self.bot.send_message(self.dev_chat_id, new_text, parse_mode='HTML')
+        return message
 
+    # =============================================================================================================
+    # ================================================  EXECUTIVE  ================================================
+    # =============================================================================================================
 
-async def async_exec(logs=None):
-    retry, func, func_locals, full_name = executive(logs)
-    await asyncio.sleep(retry)
-    send_starting_function(retry, full_name)
+    def executive(self, logs):
+        retry = 100
+        func = None
+        func_locals = []
+        stack = inspect.stack()
+        name = re.sub('[<>]', '', str(stack[-1][3]))
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        full_name = bold(app_name) + '(' + code(host) + ').' + bold(name + '()')
+        error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + re.sub('\n', '', error_raw[-1]))
+        error = 'Вылет ' + full_name + '\n\n'
+        for i in error_raw:
+            error += html_secure(i)
+        search_retry = re.search(search_retry_pattern, str(error))
+        search_minor_fails = re.search(search_minor_fails_pattern, str(error))
+        search_major_fails = re.search(search_major_fails_pattern, str(error))
+        if search_retry:
+            retry = int(search_retry.group(1)) + 10
+        if search_minor_fails:
+            logs = None
+            retry = 10
+            error = ''
+        if search_major_fails:
+            logs = None
+            retry = 99
+            error = ''
+
+        if logs is None:
+            caller = inspect.currentframe().f_back.f_back
+            func_name = inspect.getframeinfo(caller)[2]
+            for a in caller.f_locals:
+                if a.startswith('host'):
+                    func_locals.append(caller.f_locals.get(a))
+            func = caller.f_locals.get(func_name, caller.f_globals.get(func_name))
+        else:
+            retry = 0
+        self.send_json(logs, name, error)
+        return retry, func, func_locals, full_name
+
+    def send_json(self, logs, name, error):
+        json_text = ''
+        if type(logs) is str:
+            for character in logs:
+                replaced = unidecode(str(character))
+                if replaced != '':
+                    json_text += replaced
+                else:
+                    try:
+                        json_text += '[' + unicodedata.name(character) + ']'
+                    except ValueError:
+                        json_text += '[???]'
+        if json_text:
+            doc = open(name + '.json', 'w')
+            doc.write(json_text)
+            doc.close()
+            caption = None
+            if len(error) <= 1024:
+                caption = error
+            doc = open(name + '.json', 'rb')
+            self.bot.send_document(self.dev_chat_id, doc, caption=caption, parse_mode='HTML')
+        if (json_text == '' and 0 < len(error) <= 1024) or (1024 < len(error) <= 4096):
+            self.bot.send_message(self.dev_chat_id, error, parse_mode='HTML')
+        elif len(error) > 4096:
+            separator = 4096
+            split_sep = len(error) // separator
+            split_mod = len(error) / separator - len(error) // separator
+            if split_mod != 0:
+                split_sep += 1
+            for i in range(0, split_sep):
+                split_error = error[i * separator:(i + 1) * separator]
+                if len(split_error) > 0:
+                    self.bot.send_message(self.dev_chat_id, split_error, parse_mode='HTML')
+
+    def thread_exec(self, logs=None):
+        retry, func, func_locals, full_name = self.executive(logs)
+        sleep(retry)
+        if func:
+            try:
+                _thread.start_new_thread(func, (*func_locals,))
+            except IndexError and Exception as error:
+                self.send_dev_message(full_name + ':\n' + error, code)
+        if retry >= 100:
+            self.bot.send_message(self.dev_chat_id, 'Запущен ' + full_name, parse_mode='HTML')
+        _thread.exit()
+
+    async def async_exec(self, logs=None):
+        retry, func, func_locals, full_name = self.executive(logs)
+        await asyncio.sleep(retry)
+        if retry >= 100:
+            self.bot.send_message(self.dev_chat_id, 'Запущен ' + full_name, parse_mode='HTML')

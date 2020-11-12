@@ -1,6 +1,14 @@
 import os
 import io
 from setuptools import setup
+requirements = [
+    'heroku3==4.2.3',
+    'aiogram==2.9',
+    'pyTelegramBotApi==3.7.3',
+    'requests>=2.24.0',
+    'beautifulsoup4==4.9.3',
+    'Unidecode==1.1.1',
+]
 
 
 def read(*parts):
@@ -16,19 +24,19 @@ setup(
     author='evolvestin',
     packages=['objects'],
     version=read('version'),
+    python_requires='>=3.7',
+    install_requires=requirements,
     package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
     long_description=read('README.rst'),
     url='https://github.com/steve10live/e-objects/',
     description='Some useful objects for telegram bots.',
-    install_requires=['heroku3', 'aiogram', 'pyTelegramBotApi', 'requests', 'bs4', 'Unidecode'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ]
