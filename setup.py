@@ -3,12 +3,12 @@ import io
 import re
 from setuptools import setup
 requirements = [
-    'heroku3==4.2.3',
     'aiogram==2.9',
-    'pyTelegramBotApi==3.7.3',
+    'heroku3==4.2.3',
     'requests>=2.24.0',
-    'beautifulsoup4==4.9.3',
     'Unidecode==1.1.1',
+    'beautifulsoup4==4.9.3',
+    'pyTelegramBotApi==3.7.3',
 ]
 
 
