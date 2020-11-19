@@ -33,12 +33,12 @@ setup(
     url='https://github.com/evolvestin/e-objects/',
     description='Some useful objects for telegram bots.',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
         'Natural Language :: English',
-        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
+        'Intended Audience :: Developers',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'License :: OSI Approved :: MIT License',
+        'Development Status :: 5 - Production/Stable'
     ]
 )
