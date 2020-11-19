@@ -57,16 +57,18 @@ def code(text):
     return '<code>' + str(text) + '</code>'
 
 
-def html_secure(text):
-    return re.sub('<', '&#60;', str(text))
-
-
 def time_now():
     return int(datetime.now().timestamp())
 
 
 def html_link(link, text):
     return '<a href="' + str(link) + '">' + str(text) + '</a>'
+
+
+def html_secure(text):
+    response = re.sub('<', '&#60;', str(text))
+    response = re.sub('[{]', '&#123;', response)
+    return re.sub('[}]', '&#125;', response)
 
 
 def append_values(array, values):
