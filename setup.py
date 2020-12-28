@@ -3,19 +3,19 @@ import io
 import re
 from setuptools import setup
 requirements = [
-    'aiogram==2.9',
     'heroku3==4.2.3',
-    'requests>=2.24.0',
+    'aiogram==2.11.2',
+    'requests>=2.25.1',
     'Unidecode==1.1.1',
     'beautifulsoup4==4.9.3',
-    'pyTelegramBotApi==3.7.3',
+    'pyTelegramBotApi==3.7.4',
 ]
 
 
 def read(*parts):
     filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), *parts)
-    with io.open(filename, encoding='utf-8', mode='rt') as fp:
-        return fp.read()
+    with io.open(filename, encoding='utf-8', mode='rt') as file:
+        return file.read()
 
 
 setup(
