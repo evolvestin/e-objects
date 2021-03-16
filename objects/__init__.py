@@ -65,6 +65,10 @@ def html_link(link, text):
     return '<a href="' + str(link) + '">' + str(text) + '</a>'
 
 
+def sql_divide(array):
+    return [array[i:i + 1000] for i in range(0, len(array), 1000)]
+
+
 def html_secure(text):
     response = re.sub('<', '&#60;', str(text))
     response = re.sub('[{]', '&#123;', response)
