@@ -93,15 +93,12 @@ def html_secure(text, reverse=None):
     return text
 
 
-def stamper(date, delta=0, pattern=None):
-    try:
-        if pattern is None:
-            stamp = int(datetime.fromisoformat(str(date)).timestamp())
-        else:
-            stamp = int(calendar.timegm(time.strptime(str(date), pattern)))
-    except IndexError and Exception:
-        stamp = None
-    return stamp - delta * 60 * 60 if stamp else None
+def concurrent_functions(array):
+    array = [array] if type(array) != list else array
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as future_executor:
+        futures = [future_executor.submit(future) for future in array]
+        for future in concurrent.futures.as_completed(futures):
+            print(future.result())
 
 
 def chunks(array, separate):
@@ -113,12 +110,15 @@ def chunks(array, separate):
     return separated
 
 
-def concurrent_functions(array):
-    array = [array] if type(array) != list else array
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as future_executor:
-        futures = [future_executor.submit(future) for future in array]
-        for future in concurrent.futures.as_completed(futures):
-            print(future.result())
+def stamper(date, delta=0, pattern=None):
+    try:
+        if pattern is None:
+            stamp = int(datetime.fromisoformat(str(date)).timestamp())
+        else:
+            stamp = int(calendar.timegm(time.strptime(str(date), pattern)))
+    except IndexError and Exception:
+        stamp = None
+    return stamp - delta * 60 * 60 if stamp else None
 
 
 def environmental_files(python=None):
@@ -134,6 +134,25 @@ def environmental_files(python=None):
             with codecs.open(key, 'w', 'utf-8') as file:
                 file.write(base64.b64decode(os.environ.get(key)).decode('utf-8'))
     return created_files
+
+
+def heroku_reboot():
+    def reboot(key):
+        time.sleep(5)
+        connection = heroku3.from_key(key)
+        for app in connection.apps():
+            for dyno in app.dynos():
+                dyno.restart()
+
+    log_text = 'Неудачный запрос перезапуска'
+    if os.environ.get('api'):
+        log_text = 'Успешный запрос перезапуска'
+        text = '✅ Перезапуск через 5 секунд.'
+        _thread.start_new_thread(reboot, (os.environ['api'],))
+    else:
+        text = '❌ Переменная окружения не установлена.'
+        log_text += ' (переменной нет)'
+    return bold(text), bold(log_text)
 
 
 def iter_entities(text=None, raw_entities=None):
