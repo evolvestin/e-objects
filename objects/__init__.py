@@ -144,15 +144,13 @@ def heroku_reboot():
             for dyno in app.dynos():
                 dyno.restart()
 
-    log_text = 'Неудачный запрос перезапуска'
+    log_text = 'Неудачно'
     if os.environ.get('api'):
-        log_text = 'Успешный запрос перезапуска'
-        text = '✅ Перезапуск через 5 секунд.'
+        log_text, text = 'Успешно', '✅ Перезапуск через 5 секунд.'
         _thread.start_new_thread(reboot, (os.environ['api'],))
     else:
         text = '❌ Переменная окружения не установлена.'
-        log_text += ' (переменной нет)'
-    return bold(text), bold(log_text)
+    return bold(text), bold(f'[{log_text}]')
 
 
 def iter_entities(text=None, raw_entities=None):
@@ -558,7 +556,7 @@ class AuthCentre:
                     search_start = re.search(r'От: (.*)', chat.description)
                     end_time = search_end.group(1) if search_end else None
                     start_time = search_start.group(1) if search_start else None
-                for sign in ['dev', 'media', 'forward', 'dump']:
+                for sign in ['dev', 'forward', 'media', 'dump']:
                     signs.append(sign) if sign in str(chat.title).lower() else None
                 value.update({
                     'id': chat.id,
