@@ -3,12 +3,13 @@ import io
 import re
 from setuptools import setup
 requirements = [
+    'aiogram==2.13',
     'heroku3==4.2.3',
-    'aiogram==2.11.2',
-    'requests>=2.25.1',
-    'Unidecode==1.1.1',
+    'requests==2.25.1',
+    'Unidecode==1.2.0',
     'beautifulsoup4==4.9.3',
     'pyTelegramBotApi==3.7.4',
+    'google-api-python-client==1.10.0',
 ]
 
 
@@ -24,7 +25,7 @@ setup(
     keywords='objects',
     author='evolvestin',
     packages=['objects'],
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=requirements,
     package_dir={'objects': 'objects'},
     author_email='evolvestin@gmail.com',
@@ -36,7 +37,6 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
         'Intended Audience :: Developers',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: MIT License',
         'Development Status :: 5 - Production/Stable'
