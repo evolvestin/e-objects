@@ -136,23 +136,6 @@ def environmental_files(python=None):
     return created_files
 
 
-def heroku_reboot():
-    def reboot(key):
-        time.sleep(5)
-        connection = heroku3.from_key(key)
-        for app in connection.apps():
-            for dyno in app.dynos():
-                dyno.restart()
-
-    log_text = 'Неудачно'
-    if os.environ.get('api'):
-        log_text, text = 'Успешно', '✅ Перезапуск через 5 секунд.'
-        _thread.start_new_thread(reboot, (os.environ['api'],))
-    else:
-        text = '❌ Переменная окружения не установлена.'
-    return bold(text), bold(f'[{log_text}]')
-
-
 def iter_entities(text=None, raw_entities=None):
     text_list = []
     if text:
@@ -518,6 +501,8 @@ class AuthCentre:
                 self.delay = kwargs['LOG_DELAY']
             elif type(kwargs.get('LOG_DELAY')) == str:
                 self.delay = int(re.sub(r'\D', '', kwargs['LOG_DELAY']))
+            elif len(self.chat_ids) == 0:
+                self.delay = 0
             else:
                 self.delay = 15
 
@@ -608,6 +593,29 @@ class AuthCentre:
                 head_text, _, _ = self.header(message['from'].to_python())
                 head += f'\n{space}👤 {head_text}'
             return head, name, username, space, update
+
+        def reboot(self, dispatcher):
+            def heroku(delay, connection):
+                time.sleep(4)
+                dispatcher.stop_polling()
+                time.sleep(delay+1)
+                for app in connection.apps():
+                    for dyno in app.dynos():
+                        dyno.restart()
+
+            if os.environ.get('api'):
+                if self.delay+5 in [21, 31, 41]:
+                    postfix = 'секунду'
+                elif self.delay+5 in [22, 23, 24, 32, 33, 34]:
+                    postfix = 'секунды'
+                else:
+                    postfix = 'секунд'
+                connect = heroku3.from_key(os.environ['api'])
+                _thread.start_new_thread(heroku, (self.delay, connect,))
+                text, log_text = f'✅ Перезапуск через {self.delay+5} {postfix}.', '[Успешно]'
+            else:
+                text, log_text = '❌ Переменная окружения не установлена.', '[Неудачно]'
+            return bold(text), f' {bold(log_text)}'
 
         def text(self):
             def links(array, title_one='', title_many='', sep='\n'):
