@@ -843,7 +843,7 @@ class AuthCentre:
                                 elif status['new'] == 'restricted':
                                     action['text'] = 'Ограничил %s'
                                     if member['username'] == self.username \
-                                            and member['can_send_messages'] is False:
+                                            and message['new_chat_member']['can_send_messages'] is False:
                                         update['reaction'] = '🔕'
 
                                 else:
@@ -857,7 +857,7 @@ class AuthCentre:
                 emoji = '🤖' if action['tag_type'] == 'bot' else '👤'
                 action['member'] = f"\n{space}{' ' * 5}{emoji} {member_text[:-1]}"
                 if user and user['reaction'] == '🔕' and member['username'] == self.username \
-                        and member['can_send_messages'] is True:
+                        and message['new_chat_member']['can_send_messages'] is True:
                     update['reaction'] = '♿'
             else:
                 chat_type = 'канал' if message['chat']['type'] == 'channel' else 'чат'
