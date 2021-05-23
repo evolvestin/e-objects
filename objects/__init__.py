@@ -42,10 +42,12 @@ allowed_updates = ['callback_query', 'channel_post', 'chat_member', 'chosen_inli
                    'chosen_inline_result', 'edited_channel_post', 'edited_message', 'inline_query',
                    'message', 'my_chat_member', 'poll_answer', 'pre_checkout_query', 'shipping_query']
 
-patterns = {'retry': r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"',
-            'major': 'The (read|write) operation timed out|Backend Error|is currently unavailable.',
-            'minor': 'Failed to establish a new connection|Read timed out.'
-                     '|ServerDisconnectedError|Message_id_invalid|Connection aborted',
+patterns = {'major': 'The (read|write) operation timed out|Backend Error'
+                     '|is currently unavailable.|returned "Internal Error"',
+            'retry': r'Retry in (\d+) seconds|Please try again in (\d+) seconds.|'
+                     r'"Too Many Requests: retry after (\d+)"',
+            'minor': 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError'
+                     '|Message_id_invalid|Connection aborted|Connection reset by peer',
             'block': 'initiate conversation with a user|user is deactivated|Have no rights'
                      '|The group has been migrated|bot was kicked from the supergroup chat'
                      '|bot was blocked by the user|Chat not found|bot was kicked from the group chat'}
@@ -372,13 +374,10 @@ class AuthCentre:
                 message = kwargs['message']
                 response = await task(target_id, message['chat']['id'], message['message_id'])
 
-            elif task_name == 'send_photo' and kwargs.get('path'):
-                response = await task(target_id, types.InputFile(kwargs['path']),
-                                      caption=kwargs.get('caption'), parse_mode='HTML')
-
             elif task_name in ['send_audio', 'send_photo', 'send_video', 'send_voice', 'send_document']:
-                response = await task(target_id, kwargs['file_id'],
-                                      caption=kwargs.get('caption'), parse_mode='HTML')
+                caption = kwargs['text'] if kwargs.get('text') else kwargs.get('caption')
+                file = types.InputFile(kwargs['path']) if kwargs.get('path') else kwargs['file_id']
+                response = await task(target_id, file, caption=caption, parse_mode='HTML')
 
             elif task_name == 'send_message':
                 if kwargs.get('message'):
@@ -395,6 +394,10 @@ class AuthCentre:
                     message['date'] = time_now(self.delta)
                     message['from'] = kwargs['call']['from']
                     log_text = 'Нажал' if log_text is None else log_text
+                    try:
+                        await self.async_bot.answer_callback_query(kwargs['call']['id'], text=kwargs.get('answer'))
+                    except IndexError and Exception:
+                        pass
 
                     if kwargs.get('text'):
                         modified = html_secure(re.sub('<.*?>', '', kwargs['text']), reverse=True).strip()
@@ -412,8 +415,8 @@ class AuthCentre:
                         error_text = ''
                         log_text += ', но получил #timeout'
                         try:
-                            task = self.async_bot.answer_callback_query
-                            await task(kwargs['call']['id'], text=kwargs.get('timeout'))
+                            answer_task = self.async_bot.answer_callback_query
+                            await answer_task(kwargs['call']['id'], text=kwargs.get('timeout'))
                         except IndexError and Exception as answer_error:
                             error_text += f'\nAnswer error: {answer_error}'
                         if re.search('Query is too old', str(error)) is None:
@@ -434,17 +437,16 @@ class AuthCentre:
                     log_text += bold(' [Не отправлено]')
             else:
                 error_text = ''
-                keys = deepcopy(kwargs)
-                for key in keys:
-                    if key in ['call', 'message', 'keyboard'] and keys[key] is not None:
-                        keys[key] = keys[key].to_python()
+                for key in kwargs:
+                    if key in ['call', 'message', 'keyboard'] and kwargs[key] is not None:
+                        kwargs[key] = kwargs[key].to_python()
 
                 if kwargs.get('text'):
                     error_text = f"\nlen(re.sub(<.*?>, text)) = " \
                                  f"{len(re.sub('<.*?>', '', str(kwargs['text'])))}" \
                                  f"\nlen(text) = {len(str(kwargs['text']))}\ntext = {kwargs['text']}"
                 self.dev.executive(f'Not delivered {task_name.upper()} to: {target_id}\n'
-                                   f'Short error: {error}{error_text}\nKeys: {keys}')
+                                   f'Short error: {error}{error_text}\nKeys: {kwargs}')
 
         if log_text is not None:
             message = kwargs['call']['message'] if kwargs.get('call') else kwargs['message']
@@ -840,6 +842,9 @@ class AuthCentre:
 
                                 elif status['new'] == 'restricted':
                                     action['text'] = 'Ограничил %s'
+                                    if member['username'] == self.username \
+                                            and member['can_send_messages'] is False:
+                                        update['reaction'] = '🔕'
 
                                 else:
                                     action['text'] = 'Забрал роль админа у %s'
@@ -851,6 +856,9 @@ class AuthCentre:
                 member_text, _, _ = self.header(member.to_python())
                 emoji = '🤖' if action['tag_type'] == 'bot' else '👤'
                 action['member'] = f"\n{space}{' ' * 5}{emoji} {member_text[:-1]}"
+                if user and user['reaction'] == '🔕' and member['username'] == self.username \
+                        and member['can_send_messages'] is True:
+                    update['reaction'] = '♿'
             else:
                 chat_type = 'канал' if message['chat']['type'] == 'channel' else 'чат'
                 if status['old'] in ['left', 'kicked']:
@@ -865,7 +873,7 @@ class AuthCentre:
             text += action['member'] if action.get('member') else ''
             return text, update if update and user else None, greeting
 
-        async def data(self, message, user, hard=True):
+        async def data(self, message, user=None, hard=True):
             text = ''
             head, name, username, space, update = self.head(message, user)
 
