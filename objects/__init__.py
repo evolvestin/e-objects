@@ -46,8 +46,9 @@ patterns = {'major': 'The (read|write) operation timed out|Backend Error'
                      '|is currently unavailable.|returned "Internal Error"',
             'retry': r'Retry in (\d+) seconds|Please try again in (\d+) seconds.|'
                      r'"Too Many Requests: retry after (\d+)"',
-            'minor': 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError'
-                     '|Message_id_invalid|Connection aborted|Connection reset by peer',
+            'minor': 'Message to forward not found|Message can&#39;t be forwarded'
+                     '|Message_id_invalid|Connection aborted|Connection reset by peer'
+                     '|Failed to establish a new connection|Read timed out.|ServerDisconnectedError',
             'block': 'initiate conversation with a user|user is deactivated|Have no rights'
                      '|The group has been migrated|bot was kicked from the supergroup chat'
                      '|bot was blocked by the user|Chat not found|bot was kicked from the group chat'}
@@ -326,7 +327,7 @@ class AuthCentre:
             response = re.sub('-', sep, response) if sep else response
             if form != 'date':
                 response += f" {date.strftime('%H')}:{date.strftime('%M')}"
-                response += f":{date.strftime('%S')}" if seconds else response
+                response += f":{date.strftime('%S')}" if seconds else ''
             response = f"{week[date.strftime('%a')]} {response}" if form is None else response
         else:
             response = re.sub(r'\+.*', '', date.isoformat(sep=sep if sep else ' '))
