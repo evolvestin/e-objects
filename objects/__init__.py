@@ -607,12 +607,11 @@ class AuthCentre:
                         dyno.restart()
 
             if os.environ.get('api'):
-                if self.delay+5 in [21, 31, 41]:
-                    postfix = 'секунду'
-                elif self.delay+5 in [22, 23, 24, 32, 33, 34]:
-                    postfix = 'секунды'
-                else:
-                    postfix = 'секунд'
+                postfix = 'секунд'
+                if self.delay+5 < 10 or 20 < self.delay+5 < 110 or self.delay+5 > 120:
+                    postfix += 'у' if str(self.delay+5)[-1] in ['1'] else ''
+                    postfix += 'ы' if str(self.delay+5)[-1] in ['2', '3', '4'] else ''
+
                 connect = heroku3.from_key(os.environ['api'])
                 _thread.start_new_thread(heroku, (self.delay, connect,))
                 text, log_text = f'✅ Перезапуск через {self.delay+5} {postfix}.', '[Успешно]'
@@ -910,7 +909,7 @@ class AuthCentre:
                     text = re.sub('\n', f'\n{space}', text)
 
                 if message['pinned_message']:
-                    text += bold('Пин-сообщение #pinned_message:')
+                    text += bold('Закрепил сообщение #pinned_message:')
                     pinned, _ = await self.data(message['pinned_message'], user)
                     text += re.sub('\n', f'\n{space}', pinned)
 
