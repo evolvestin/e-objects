@@ -1071,8 +1071,9 @@ class AuthCentre:
             return self.message(text=self.header(text))
 
         # -------------------------------------------------------------------------------- DEV EXECUTIVE
-        def send_except(self, title='', error='', message=None):
+        def send_except(self, title='', error=None, message=None):
             len_title = len(re.sub('<.*?>', '', title))
+            error = str(error) if error else ''
             len_text = len_title + len(error)
             caption, message_text = None, ''
             if message is not None:
