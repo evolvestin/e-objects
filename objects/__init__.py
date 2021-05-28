@@ -369,7 +369,7 @@ class AuthCentre:
         try:
             task_name = task.__name__
             if task_name in ['send_video_note', 'send_sticker']:
-                response = await task(target_id, kwargs['file_id'])
+                response = await task(target_id, kwargs['file_id'], reply_to_message_id=kwargs.get('reply'))
 
             elif task_name == 'forward_message':
                 message = kwargs['message']
@@ -378,7 +378,8 @@ class AuthCentre:
             elif task_name in ['send_audio', 'send_photo', 'send_video', 'send_voice', 'send_document']:
                 caption = kwargs['text'] if kwargs.get('text') else kwargs.get('caption')
                 file = types.InputFile(kwargs['path']) if kwargs.get('path') else kwargs['file_id']
-                response = await task(target_id, file, caption=caption, parse_mode='HTML')
+                response = await task(target_id, file, parse_mode='HTML',
+                                      caption=caption, reply_to_message_id=kwargs.get('reply'))
 
             elif task_name == 'send_message':
                 if kwargs.get('message'):
