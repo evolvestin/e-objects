@@ -598,24 +598,26 @@ class AuthCentre:
                 head += f'\n{space}👤 {head_text}'
             return head, name, username, space, update
 
-        def reboot(self, dispatcher):
-            def heroku(delay, connection):
+        def reboot(self, dispatcher=None):
+            def heroku(_delay, connection):
                 time.sleep(4)
-                dispatcher.stop_polling()
-                time.sleep(delay+1)
+                if dispatcher:
+                    dispatcher.stop_polling()
+                    time.sleep(_delay+1)
                 for app in connection.apps():
                     for dyno in app.dynos():
                         dyno.restart()
 
             if os.environ.get('api'):
                 postfix = 'секунд'
-                if self.delay+5 < 10 or 20 < self.delay+5 < 110 or self.delay+5 > 120:
-                    postfix += 'у' if str(self.delay+5)[-1] in ['1'] else ''
-                    postfix += 'ы' if str(self.delay+5)[-1] in ['2', '3', '4'] else ''
+                delay = self.delay+5
+                if delay < 10 or 20 < delay < 110 or delay > 120:
+                    postfix += 'у' if str(delay)[-1] in ['1'] else ''
+                    postfix += 'ы' if str(delay)[-1] in ['2', '3', '4'] else ''
 
                 connect = heroku3.from_key(os.environ['api'])
                 _thread.start_new_thread(heroku, (self.delay, connect,))
-                text, log_text = f'✅ Перезапуск через {self.delay+5} {postfix}.', '[Успешно]'
+                text, log_text = f'✅ Перезапуск через {delay} {postfix}.', '[Успешно]'
             else:
                 text, log_text = '❌ Переменная окружения не установлена.', '[Неудачно]'
             return bold(text), f' {bold(log_text)}'
