@@ -46,12 +46,12 @@ patterns = {'major': 'The (read|write) operation timed out|Backend Error'
                      '|is currently unavailable.|returned "Internal Error"',
             'retry': r'Retry in (\d+) seconds|Please try again in (\d+) seconds.|'
                      r'"Too Many Requests: retry after (\d+)"',
-            'minor': 'Message to forward not found|Message can&#39;t be forwarded'
-                     '|Message_id_invalid|Connection aborted|Connection reset by peer'
-                     '|Failed to establish a new connection|Read timed out.|ServerDisconnectedError',
             'block': 'initiate conversation with a user|user is deactivated|Have no rights'
                      '|The group has been migrated|bot was kicked from the supergroup chat'
-                     '|bot was blocked by the user|Chat not found|bot was kicked from the group chat'}
+                     '|bot was blocked by the user|Chat not found|bot was kicked from the group chat',
+            'minor': 'Message to forward not found|Message can&#39;t be forwarded|Message_id_invalid'
+                     '|Read timed out.|ServerDisconnectedError|EOF occurred in violation of protocol'
+                     '|Connection aborted|Connection reset by peer|Failed to establish a new connection'}
 
 
 def bold(text):
